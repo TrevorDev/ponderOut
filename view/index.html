@@ -2,7 +2,10 @@
 {% block body %}
 <div class="container-wide" ng-controller="homeCtrl">
 	<div ng-cloak>
-		<a href="[[parentUrl]]" ng-show="currentNode.parent"><button class="btn btn-default">
+		<div ng-show="!currentNode">
+			<h2>Welcome! You can select a node below to find related nodes or create your own node.</h2>
+		</div>
+		<a href="[[parentUrl]]" ng-show="currentNode"><button class="btn btn-default">
 			<i style="font-size:1.0em" class="glyphicon glyphicon-chevron-up"></i>
 			<span>To parent</span>
 		</button></a>
