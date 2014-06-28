@@ -1,0 +1,85 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="container-wide" ng-controller="homeCtrl">
+	<div ng-cloak>
+		<a href="[[parentUrl]]" ng-show="currentNode.parent"><button class="btn btn-default">
+			<i style="font-size:1.0em" class="glyphicon glyphicon-chevron-up"></i>
+			<span>To parent</span>
+		</button></a>
+		<h3>[[currentNode.text]]</h3>
+		<button ng-click="toggleShowAddNode()" class="btn btn-primary">
+			<i style="font-size:1.0em" class="glyphicon glyphicon-pencil"></i>
+			<span>Add a related node</span>
+		</button> <span ng-show="showAddNode">[[255 - newNodeText.length]]</span>
+		<form ng-submit="addNode()" ng-show="showAddNode">
+			<fieldset ng-disabled="addedNode">
+			<textarea maxlength="255" ng-model="newNodeText" class="form-control" rows="3"></textarea>
+			<input class="btn btn-default" type="submit" value="Submit">
+			<span ng-show="addedNode">Submitted! Please come back later to see additional contributions.</span>
+			</fieldset>
+		</form>
+	
+		<div class="row">
+			<div ng-repeat="child in children" class="col-md-4">
+				<a href="/node/[[child.id]]"><div class="well" style="margin: 10px;">[[child.text]]</div></a>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+function homeCtrl($scope, $http) {
+	$scope.showAddNode=false;
+	$scope.toggleShowAddNode = function(){
+		$scope.showAddNode = !$scope.showAddNode;
+	}
+
+	$scope.nodeID = window.location.pathname.split("/")[2];
+	if(!$scope.nodeID){
+		$scope.nodeID=null
+	}
+	$scope.currentNode = null
+	$scope.parentUrl = "/"
+
+	if($scope.nodeID){
+		$http.get('/api/node/'+$scope.nodeID).
+		    success(function(resp, status, headers, config) {
+		    	$scope.currentNode = resp.data.node
+		    	console.log($scope.currentNode.parent);
+		    	if($scope.currentNode.parent){
+		    		console.log("HIT")
+		    		$scope.parentUrl = "/node/"+$scope.currentNode.parent
+		    	}
+		    }).
+		    	error(function(data, status, headers, config) {
+		    });
+	}
+	
+
+	$http.get('/api/node/'+$scope.nodeID+"/children").
+	    success(function(resp, status, headers, config) {
+	    	console.log(resp.data)
+	    	$scope.children = resp.data.children
+	    }).
+	    error(function(data, status, headers, config) {
+	    });
+
+	$scope.addNode = function(){
+		$scope.addedNode=true
+		$http.post('/api/node', {text: $scope.newNodeText, parent: $scope.currentNode ? $scope.currentNode.id : null}).
+	    success(function(resp, status, headers, config) {
+	    	console.log("done")
+	    }).
+	    error(function(data, status, headers, config) {
+	    });
+	}
+}
+</script>
+
+<!--<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+</script>-->
+{% endblock %}
